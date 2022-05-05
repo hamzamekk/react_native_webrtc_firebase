@@ -1,4 +1,4 @@
-package com.react_native_simple_webrtc_firebase.newarchitecture;
+package com.webrtc.newarchitecture;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
@@ -19,9 +19,9 @@ import com.facebook.react.fabric.CoreComponentsRegistry;
 import com.facebook.react.fabric.EmptyReactNativeConfig;
 import com.facebook.react.fabric.FabricJSIModuleProvider;
 import com.facebook.react.uimanager.ViewManagerRegistry;
-import com.react_native_simple_webrtc_firebase.BuildConfig;
-import com.react_native_simple_webrtc_firebase.newarchitecture.components.MainComponentsRegistry;
-import com.react_native_simple_webrtc_firebase.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
+import com.webrtc.BuildConfig;
+import com.webrtc.newarchitecture.components.MainComponentsRegistry;
+import com.webrtc.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
 import java.util.ArrayList;
 import java.util.List;
 

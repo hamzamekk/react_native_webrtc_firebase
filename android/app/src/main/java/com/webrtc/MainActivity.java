@@ -1,4 +1,4 @@
-package com.react_native_simple_webrtc_firebase;
+package com.webrtc;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;

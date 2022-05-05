@@ -1,4 +1,4 @@
-package com.react_native_simple_webrtc_firebase.newarchitecture.components;
+package com.webrtc.newarchitecture.components;
 
 import com.facebook.jni.HybridData;
 import com.facebook.proguard.annotations.DoNotStrip;

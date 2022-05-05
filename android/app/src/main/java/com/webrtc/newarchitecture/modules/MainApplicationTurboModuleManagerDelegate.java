@@ -1,4 +1,4 @@
-package com.react_native_simple_webrtc_firebase.newarchitecture.modules;
+package com.webrtc.newarchitecture.modules;
 
 import com.facebook.jni.HybridData;
 import com.facebook.react.ReactPackage;
