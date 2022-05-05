@@ -1,34 +1,25 @@
 import React, {useEffect} from 'react';
 import RNBootSplash from 'react-native-bootsplash';
 import {createStackNavigator} from '@react-navigation/stack';
-
-import {useAuth} from 'core';
 import {NavigationContainer} from './NavigationContainer';
-import {TabNavigator} from './TabNavigator';
-import {AuthNavigator} from './AuthNavigator';
+import {MainNavigator} from './TabNavigator';
 
 const Stack = createStackNavigator();
 
 export const Root = () => {
-  const {status} = useAuth();
   useEffect(() => {
-    if (status !== 'idle') {
-      RNBootSplash.hide({fade: true});
-    }
-  }, [status]);
+    RNBootSplash.hide({fade: true});
+  }, []);
+
   return (
     <Stack.Navigator
       screenOptions={{
         cardOverlayEnabled: false,
         headerShown: false,
         gestureEnabled: false,
-        animationTypeForReplace: status === 'signIn' ? 'push' : 'pop',
+        animationTypeForReplace: 'push',
       }}>
-      {status === 'signIn' ? (
-        <Stack.Screen name="App" component={TabNavigator} />
-      ) : (
-        <Stack.Screen name="Auth" component={AuthNavigator} />
-      )}
+      <Stack.Screen name="App" component={MainNavigator} />
     </Stack.Navigator>
   );
 };
