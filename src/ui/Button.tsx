@@ -39,6 +39,7 @@ type Props = SpacingProps<Theme> &
     label?: string;
     outline?: boolean;
     loading?: boolean;
+    disabled?: boolean;
   };
 
 export const Button = ({
@@ -46,13 +47,14 @@ export const Button = ({
   label,
   loading = false,
   variant = 'primary',
+  disabled = false,
   ...rest
 }: Props) => {
   const props = useRestyle(restyleFunctions, {...rest, variant});
   const textVariant = 'button_' + variant;
 
   return (
-    <TouchableOpacity onPress={onPress}>
+    <TouchableOpacity onPress={onPress} disabled={disabled}>
       <ButtonContainer
         borderRadius={44}
         flexDirection="row"

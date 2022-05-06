@@ -1,15 +1,21 @@
 import * as React from 'react';
-import {Home} from 'screens';
+import {Home, CreateCall} from 'screens';
 import {createStackNavigator} from '@react-navigation/stack';
-const Root = createStackNavigator();
+const Main = createStackNavigator();
+
+export type MainStackParamList = {
+  Home: undefined;
+  CreateCall: {callId: string};
+};
 
 export const MainNavigator = () => {
   return (
-    <Root.Navigator
+    <Main.Navigator
       screenOptions={{
         headerShown: false,
       }}>
-      <Root.Screen name="Home" component={Home} />
-    </Root.Navigator>
+      <Main.Screen name="Home" component={Home} />
+      <Main.Screen name="CreateCall" component={CreateCall} />
+    </Main.Navigator>
   );
 };
