@@ -15,18 +15,28 @@ export const Home = () => {
         width={'90%'}
         alignSelf={'center'}
         my={'m'}
-        borderRadius={10}>
+        borderRadius={10}
+        height={60}
+        justifyContent={'center'}>
         <TextInput
           placeholder="place a call id"
           style={styles.input}
           onChangeText={setCallId}
+          autoCapitalize={'none'}
         />
       </View>
 
       <Button
         disabled={!callId}
         label="Start a call"
-        onPress={() => navigate('CreateCall', {callId})}
+        onPress={() => navigate('CreateCall', {callId, calling: true})}
+        marginHorizontal={'xl'}
+      />
+
+      <Button
+        disabled={!callId}
+        label="Join a call"
+        onPress={() => navigate('CreateCall', {callId, calling: false})}
         marginHorizontal={'xl'}
       />
     </Screen>
@@ -37,5 +47,8 @@ const styles = StyleSheet.create({
   input: {
     fontFamily: 'Inter',
     fontSize: 20,
+    margin: 0,
+    padding: 0,
+    marginHorizontal: 10,
   },
 });

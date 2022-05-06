@@ -12,8 +12,8 @@ import {
 } from 'ui/images';
 
 type Props = {
-  localStream: MediaStream;
-  remoteStream: MediaStream;
+  localStream: MediaStream | null;
+  remoteStream: MediaStream | null;
   cameraSwitched: boolean;
   cameraTrigged: boolean;
   soundTrigged: boolean;
@@ -38,7 +38,7 @@ export const VideoScreen = ({
 
   return (
     <View flex={1}>
-      {!localStream && !remoteStream && (
+      {localStream && !remoteStream && (
         <RTCView
           style={{flex: 1}}
           streamURL={localStream && localStream.toURL()}
@@ -47,13 +47,14 @@ export const VideoScreen = ({
         />
       )}
 
-      {localStream && !remoteStream && (
+      {localStream && remoteStream && (
         <>
           <RTCView
             style={{flex: 1}}
-            streamURL={switchView ? localStream.toURL() : localStream.toURL()}
+            streamURL={switchView ? localStream.toURL() : remoteStream.toURL()}
             mirror
             objectFit={'cover'}
+            zOrder={20}
           />
           <Pressable
             onPress={() => setSwitchView(!switchView)}
@@ -66,12 +67,13 @@ export const VideoScreen = ({
             borderColor={'red'}
             borderWidth={1}>
             <RTCView
-              style={{flex: 1, borderRadius: 100}}
+              style={{flex: 1}}
               streamURL={
-                !switchView ? localStream.toURL() : localStream.toURL()
+                switchView ? remoteStream.toURL() : localStream.toURL()
               }
               mirror
               objectFit={'cover'}
+              zOrder={20}
             />
           </Pressable>
         </>

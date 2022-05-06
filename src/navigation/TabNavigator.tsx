@@ -5,7 +5,7 @@ const Main = createStackNavigator();
 
 export type MainStackParamList = {
   Home: undefined;
-  CreateCall: {callId: string};
+  CreateCall: {callId: string; calling: boolean};
 };
 
 export const MainNavigator = () => {
