@@ -13,7 +13,8 @@ export const MainNavigator = () => {
     <Main.Navigator
       screenOptions={{
         headerShown: false,
-      }}>
+      }}
+      initialRouteName={'Home'}>
       <Main.Screen name="Home" component={Home} />
       <Main.Screen name="CreateCall" component={CreateCall} />
     </Main.Navigator>

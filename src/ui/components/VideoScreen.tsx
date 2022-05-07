@@ -18,9 +18,9 @@ type Props = {
   cameraTrigged: boolean;
   soundTrigged: boolean;
   onCallDown: () => void;
-  switchCamera: (state: boolean) => void;
-  triggerCamera: (state: boolean) => void;
-  triggerSound: (state: boolean) => void;
+  switchCamera: () => void;
+  triggerCamera: () => void;
+  triggerSound: () => void;
 };
 
 export const VideoScreen = ({
@@ -98,8 +98,8 @@ export const VideoScreen = ({
           <Image source={rotate} style={styles.icon} />
         </Pressable>
         <Pressable
-          onPress={() => triggerCamera(!cameraTrigged)}
-          bg={!cameraTrigged ? 'white' : 'grey2'}
+          onPress={() => triggerCamera()}
+          bg={cameraTrigged ? 'white' : 'grey2'}
           borderWidth={1}
           borderColor={'grey2'}
           width={40}
@@ -107,15 +107,15 @@ export const VideoScreen = ({
           justifyContent={'center'}
           alignItems={'center'}
           borderRadius={20}>
-          {cameraTrigged ? (
+          {!cameraTrigged ? (
             <Image source={no_video} style={styles.icon} />
           ) : (
             <Image source={video_camera} style={styles.icon} />
           )}
         </Pressable>
         <Pressable
-          onPress={() => triggerSound(!soundTrigged)}
-          bg={!soundTrigged ? 'white' : 'grey2'}
+          onPress={() => triggerSound()}
+          bg={soundTrigged ? 'white' : 'grey2'}
           borderWidth={1}
           borderColor={'grey2'}
           width={40}
@@ -123,7 +123,7 @@ export const VideoScreen = ({
           justifyContent={'center'}
           alignItems={'center'}
           borderRadius={20}>
-          {soundTrigged ? (
+          {!soundTrigged ? (
             <Image source={mute} style={styles.icon} />
           ) : (
             <Image source={audio_Speaker} style={styles.icon} />

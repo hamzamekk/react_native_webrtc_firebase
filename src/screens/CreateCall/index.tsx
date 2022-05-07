@@ -213,6 +213,7 @@ import {
   Platform,
 } from 'react-native';
 import InCallManager from 'react-native-incall-manager';
+import {useNavigation} from '@react-navigation/native';
 
 const configuration = {
   iceServers: [
@@ -227,15 +228,22 @@ const configuration = {
 export const CreateCall = () => {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-  const [cashedLocalPc, setCachedLocalPC] = useState();
+  const [cashedLocalPc, setCachedLocalPC] =
+    useState<RTCPeerConnection | null>();
+
+  //controle media
+  const [cameraSwitched, setCameraSwitched] = useState(false);
+  const [soundTrigged, setSoundTrigged] = useState(true);
+  const [cameraTrigged, setCameraTrigged] = useState(true);
 
   const {params} = useRoute<RouteProp<MainStackParamList, 'CreateCall'>>();
+  const {navigate} = useNavigation();
 
   useEffect(() => {
     // async () => {
     // startCall();
 
-    setTimeout(async () => {
+    setTimeout(() => {
       if (params.calling) {
         startCall();
         console.log('start');
@@ -243,8 +251,9 @@ export const CreateCall = () => {
         joinCall();
         console.log('join');
       }
-    }, 1000);
+    }, 100);
 
+    return () => onCallDown(false);
     // };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -342,7 +351,7 @@ export const CreateCall = () => {
       const offer = await localPC.createOffer();
       await localPC.setLocalDescription(offer);
 
-      InCallManager.start({media: 'video', auto: true, ringback: '_BUNDLE_'}); // or _DEFAULT_ or _DTMF_
+      InCallManager.start({media: 'video', auto: true, ringback: '_DTMF_'}); // or _DEFAULT_ or _DTMF_
 
       const roomWithOffer = {offer};
       await roomRef.set(roomWithOffer);
@@ -362,6 +371,14 @@ export const CreateCall = () => {
           if (change.type === 'added') {
             let data = change.doc.data();
             await localPC.addIceCandidate(new RTCIceCandidate(data));
+          }
+        });
+      });
+
+      roomRef.collection('caller').onSnapshot(snapshot => {
+        snapshot.docChanges().forEach(change => {
+          if (change.type === 'removed') {
+            onCallDown(true);
           }
         });
       });
@@ -396,9 +413,89 @@ export const CreateCall = () => {
         });
       });
 
+      roomRef.collection('callee').onSnapshot(snapshot => {
+        snapshot.docChanges().forEach(change => {
+          if (change.type === 'removed') {
+            onCallDown(true);
+          }
+        });
+      });
+
       setCachedLocalPC(localPC);
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const switchCamera = () => {
+    try {
+      localStream.getVideoTracks().forEach(track => {
+        track._switchCamera();
+      });
+
+      setCameraSwitched(!cameraSwitched);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const triggerSound = () => {
+    try {
+      localStream?.getAudioTracks().forEach(track => {
+        track.enabled = !soundTrigged;
+      });
+
+      setSoundTrigged(!soundTrigged);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const triggerCamera = () => {
+    try {
+      localStream?.getVideoTracks().forEach(track => {
+        track.enabled = !cameraTrigged;
+      });
+
+      setCameraTrigged(!cameraTrigged);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const onCallDown = (shouldGoBack: boolean) => {
+    streamCleanup();
+    fireStoreCleanup();
+    InCallManager.stop();
+    if (cashedLocalPc) {
+      cashedLocalPc.close();
+    }
+
+    if (shouldGoBack) {
+      navigate('Home');
+    }
+  };
+
+  const streamCleanup = async () => {
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      localStream.release();
+    }
+  };
+  const fireStoreCleanup = async () => {
+    const cRef = firestore().collection('calls').doc(params.callId);
+    if (cRef) {
+      const calleeCandidate = cRef.collection('callee').get();
+      (await calleeCandidate).forEach(
+        async candidate => await candidate.ref.delete(),
+      );
+
+      const callerCandidate = cRef.collection('caller').get();
+      (await callerCandidate).forEach(
+        async candidate => await candidate.ref.delete(),
+      );
+
+      cRef.delete();
     }
   };
 
@@ -408,15 +505,13 @@ export const CreateCall = () => {
         <VideoScreen
           localStream={localStream}
           remoteStream={remoteStream}
-          cameraSwitched={false}
-          cameraTrigged={false}
-          soundTrigged={false}
-          onCallDown={startCall}
-          switchCamera={joinCall}
-          triggerCamera={state => InCallManager.turnScreenOn()}
-          triggerSound={function (state: boolean): void {
-            throw new Error('Function not implemented.');
-          }}
+          cameraSwitched={cameraSwitched}
+          cameraTrigged={cameraTrigged}
+          soundTrigged={soundTrigged}
+          onCallDown={() => onCallDown(true)}
+          switchCamera={switchCamera}
+          triggerCamera={triggerCamera}
+          triggerSound={triggerSound}
         />
       )}
     </Screen>
