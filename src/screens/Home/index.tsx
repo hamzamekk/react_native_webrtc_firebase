@@ -39,6 +39,13 @@ export const Home = () => {
         onPress={() => navigate('CreateCall', {callId, calling: false})}
         marginHorizontal={'xl'}
       />
+
+      <Button
+        // disabled={!callId}
+        label="Join a call"
+        onPress={() => navigate('JoinCall', {callId})}
+        marginHorizontal={'xl'}
+      />
     </Screen>
   );
 };

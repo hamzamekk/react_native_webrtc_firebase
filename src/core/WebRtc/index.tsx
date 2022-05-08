@@ -15,6 +15,8 @@ export const init = async () => {
   const isFront = true;
   const devices = await mediaDevices.enumerateDevices();
 
+  console.log('devices', devices);
+
   const facing = isFront ? 'front' : 'environment';
   const videoSourceId = devices.find(
     device => device.kind === 'videoinput' && device.facing === facing,
@@ -41,7 +43,12 @@ export const init = async () => {
       optional: videoSourceId ? [{sourceId: videoSourceId}] : [],
     },
   };
+
+  console.log('videoSourceId', videoSourceId);
+
   const newStream = await mediaDevices.getUserMedia(constraints);
+
+  console.log('newStream', newStream);
 
   return newStream;
 };
