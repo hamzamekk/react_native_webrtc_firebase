@@ -41,7 +41,7 @@ export const Home = () => {
       />
 
       <Button
-        // disabled={!callId}
+        disabled={!callId}
         label="Join a call"
         onPress={() => navigate('JoinCall', {callId})}
         marginHorizontal={'xl'}
