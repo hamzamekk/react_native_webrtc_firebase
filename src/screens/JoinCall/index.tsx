@@ -20,8 +20,8 @@ const configuration = {
       urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
     },
   ],
-  iceCandidatePoolSize: 10,
-  offerExtmapAllowMixed: true,
+  // iceCandidatePoolSize: 10,
+  // offerExtmapAllowMixed: true,
 };
 
 export const JoinCall = () => {
@@ -29,6 +29,8 @@ export const JoinCall = () => {
 
   const {params} = useRoute<RouteProp<MainStackParamList, 'JoinCall'>>();
   // const {navigate} = useNavigation();
+
+  let pcPeers = {};
 
   //streams
   const [localStream, setLocalStream] = useState();
@@ -57,18 +59,23 @@ export const JoinCall = () => {
             if (querySnapshot.empty) {
               console.log('EMPTY');
             } else {
+              const users: string[] = [];
               querySnapshot.forEach(async snap => {
-                await initLocalStream();
-
                 if (snap.data().name !== name && snap.data().type === 'join') {
                   // data.push(snap.data().name);
-                  await creatOffer(snap.data().name);
+                  // await creatOffer(snap.data().name);
+                  users.push(snap.data().name);
                 }
-                // if (data.length > 0) {
-                //   Promise.all(data).then(async user => {
-                //     return await creatOffer(user);
-                //   });
-                // }
+
+                if (users.length > 0) {
+                  Promise.all(
+                    users.map(async user => {
+                      return await creatOffer(user);
+                    }),
+                  )
+                    .then(data => console.log(data))
+                    .catch(e => console.log(e));
+                }
               });
             }
           });
@@ -79,11 +86,47 @@ export const JoinCall = () => {
       data.docChanges().forEach(async change => {
         if (change.type === 'added') {
           // console.log('changes', change.doc.data());
-          if (
-            change.doc.data().from !== name &&
-            change.doc.data().to === name
-          ) {
+          if (change.doc.data().to === name) {
             await createAnswer(change.doc.data().from, change.doc.data().offer);
+          }
+        }
+      });
+    });
+
+    //listen to answers
+    roomRef.collection('answers').onSnapshot(async snapshot => {
+      snapshot.docChanges().forEach(async change => {
+        if (change.type === 'added') {
+          const pc = pcPeers[change.doc.data().from];
+          if (change.doc.data().to === name) {
+            const rtcSessionDescription = new RTCSessionDescription(
+              change.doc.data().answer,
+            );
+
+            if (pc && rtcSessionDescription) {
+              await pc.setRemoteDescription(rtcSessionDescription);
+            }
+          }
+        }
+      });
+    });
+
+    //listen to candidate change
+    roomRef.collection('candidates').onSnapshot(async snapshot => {
+      snapshot.docChanges().forEach(async change => {
+        // console.log('answers', change.doc.data());
+        if (change.type === 'added') {
+          console.log('added', Platform.OS);
+          if (change.doc.data().to === name) {
+            const pc = pcPeers[change.doc.data().from];
+
+            // console.log(pc);
+
+            if (pc) {
+              await pc.addIceCandidate(
+                new RTCIceCandidate(change.doc.data().candidate),
+              );
+            }
           }
         }
       });
@@ -98,43 +141,10 @@ export const JoinCall = () => {
       // console.log('offer', offer);
       if (offer) {
         await localPC.setLocalDescription(offer);
+
+        await roomRef.collection('offers').add({from: name, to, offer});
       }
-
-      await roomRef.collection('offers').add({from: name, to, offer});
-
-      roomRef.collection('answers').onSnapshot(async snapshot => {
-        snapshot.docChanges().forEach(async change => {
-          if (change.type === 'added') {
-            if (
-              change.doc.data().from === to &&
-              change.doc.data().to === name
-            ) {
-              const rtcSessionDescription = new RTCSessionDescription(
-                change.doc.data().answer,
-              );
-              if (rtcSessionDescription) {
-                await localPC.setRemoteDescription(rtcSessionDescription);
-              }
-            }
-          }
-        });
-      });
-
-      roomRef.collection('candidates').onSnapshot(async snapshot => {
-        snapshot.docChanges().forEach(async change => {
-          // console.log('answers', change.doc.data());
-          if (change.type === 'added') {
-            if (
-              change.doc.data().from === to &&
-              change.doc.data().to === name
-            ) {
-              await localPC.addIceCandidate(
-                new RTCIceCandidate(change.doc.data().candidate),
-              );
-            }
-          }
-        });
-      });
+      pcPeers = {...pcPeers, [to]: localPC};
     } catch (e) {
       console.log(e);
     }
@@ -211,16 +221,17 @@ export const JoinCall = () => {
     };
     localPC.onaddstream = e => {
       if (e?.stream) {
-        console.log(
-          `RemotePC received the stream call ${Platform.OS}_${Platform.Version}`,
-          e?.stream,
-        );
+        // console.log(
+        //   `RemotePC received the stream call ${Platform.OS}_${Platform.Version}`,
+        //   e?.stream,
+        // );
 
+        console.log(Platform.OS, ' ', Platform.Version);
         if (remoteStream === null) {
-          Alert.alert('stream 1');
+          // Alert.alert('stream 1');
           setRemoteStream(e?.stream);
         } else {
-          Alert.alert('stream 2');
+          // Alert.alert('stream 2');
 
           setRemoteStream_(e?.stream);
         }
@@ -272,21 +283,7 @@ export const JoinCall = () => {
 
       await roomRef.collection('answers').add({from: name, to: from, answer});
 
-      roomRef.collection('candidates').onSnapshot(async snapshot => {
-        snapshot.docChanges().forEach(async change => {
-          // console.log('answers', change.doc.data());
-          if (change.type === 'added') {
-            if (
-              change.doc.data().from === from &&
-              change.doc.data().to === name
-            ) {
-              await localPC.addIceCandidate(
-                new RTCIceCandidate(change.doc.data().candidate),
-              );
-            }
-          }
-        });
-      });
+      pcPeers = {...pcPeers, [from]: localPC};
     } catch (e) {
       console.log(e);
     }
